@@ -8,7 +8,6 @@ class System: public Bead{
   public:
     int N_springs;
     std::vector<std::vector<Bead> > p;
-    double z0;
     void getValues();
     void computeForces();
     void initialize();
@@ -21,16 +20,34 @@ class System: public Bead{
     void genSeries();
     void printSeries();
     void printVel();
+    void getDistances();
+    void getAngles();
+    void getFel();
+    void getScalarProd();
+    void getFKP();
+    void getWindVel();
+    void getDrag();
+    void getWeight();
+    void getNewDrag();
+
+    double psi(double x);
+    double d_psi(double x);
+
     double T_tot;
     int N_events;
     unsigned long n;
     unsigned long rand_seed;
-    double lambda;
     double mu;
-    double sigma;
+    double h;
     double t;
+    double norm;
+    double vrel_par_sp;
     int t_s;
     vecd f;
+    vecd vrel_par;
+    vecd vrel_perp;
+    vecd v_rel;
+    vecd u;
     std::default_random_engine g;
     System(unsigned long n);
 };
