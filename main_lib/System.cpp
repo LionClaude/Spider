@@ -76,8 +76,8 @@ void System::getValues(){
 void System::initialize(){
   getValues();
 
-  std::normal_distribution<double> distribution(1.0, 0.1);
-  std::normal_distribution<double> distribution2(0.0, 0.1);
+  std::normal_distribution<double> distribution(1.0, 0.01);
+  std::normal_distribution<double> distribution2(0.0, 0.01);
 
   for (size_t i = 0; i < N_lines; i++) {
     p[i][0].q[0] = 0.0;
@@ -88,22 +88,24 @@ void System::initialize(){
         double a = distribution(g);
         double b = distribution2(g);
         double c = distribution2(g);
-        p[i][j].q[0] = s0*j + s0*a;                       //initialize positions
-        p[i][j].q[1] = 1.0 + s0*b;
-        p[i][j].q[2] = z0 + s0*c;
+        p[i][j].q[0] = s0*j;// + s0*a;                       //initialize positions
+        p[i][j].q[1] = 1.0;// + s0*b;
+        p[i][j].q[2] = z0;// + s0*c;
 
       for (size_t k = 0; k < DIM; k++) {
         p[i][j].vel[k]=0;
       }
 
       p[i][j].n=j;
+      p[i][j].l=i;
 
     }
-
+    p[i][0].n=0;
     p[i][0].l=i;
   }
 
   getWeight();
+  //std::cout << p[i][0].F_weight[2] << '\n';
 };
 
 
@@ -206,7 +208,9 @@ void System::getWindVel(){
 
 
 void System::getWeight(){
-  p[0][0].F_weight[2] = -p[0][0].m*grav;
+  for (size_t i = 0; i < N_lines; i++) {
+    p[i][0].F_weight[2] = -p[i][0].m*grav;
+  }
 };
 
 
@@ -261,7 +265,7 @@ void System::thermalize(){
       }
     }
 
-    std::cout << p[2][2].q[0] << '\n';
+    //std::cout << p[2][2].q[0] << '\n';
   }
 };
 
@@ -274,6 +278,7 @@ void System::computeForces(){
   getNewDrag();
   getFKP();
   getFel();
+  //getWeight();
 };
 
 
@@ -294,6 +299,8 @@ void System::evolve(){
     if (t < 2*N_steps_therm_i){
       out_x << p[0][0].q[0] << " " << p[0][0].vel[0] << "\n";
     }
+
+    //std::cout << p[0][0].F_weight[2] << '\n';
 
     if (t%frac_dt == 0){
       t_s = t/frac_dt;
@@ -324,6 +331,7 @@ void System::evolve(){
     }
 
     if (flag == 1){
+      std::cout << "The spider fell after " << (t - N_steps_therm_i) * dt_i << " seconds" << '\n';
       break;
     }
   }
@@ -333,7 +341,7 @@ void System::evolve(){
   std::cout << "Time taken by cycle evolve: " << duration1.count() << " microseconds" << std::endl;
 
 
-  //printCoord();
+  printCoord();
   out_x << "\n";
   out_x.close();
 

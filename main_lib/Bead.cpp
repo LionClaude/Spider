@@ -18,8 +18,9 @@ Bead::Bead(){
 
 void Bead::oneStepProp(){
   if (n == 0){
+    //std::cout << F_weight[2] << " " << F_el[2] << " " << acc[2] << " " << vel[2] << " " << q[2] << '\n';
     for (size_t i = 0; i < DIM; i++) {
-      acc[i] = (F_el[i] + F_KP[i] + 1/N_lines*F_weight[i])/m;
+      acc[i] = (F_el[i] + F_KP[i] + F_weight[i]/N_lines)/m;
       vel[i] += acc[i]*dt_i;
       q[i] += vel[i]*dt_i;
     }
