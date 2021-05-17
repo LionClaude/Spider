@@ -5,19 +5,23 @@
 
 
 class System: public Bead{
+
   public:
-    int N_springs;
+    System(unsigned long n);
+    void evolve();
+    void genSeries();
     std::vector<std::vector<Bead> > p;
+
+  private:
+    int N_springs;
     void getValues();
     void computeForces();
     void initialize();
     void thermalize();
-    void evolve();
     void printCoord();
     void genNumber();
     void genPoint();
     void genGaussian();
-    void genSeries();
     void printSeries();
     void printVel();
     void getDistances();
@@ -29,14 +33,13 @@ class System: public Bead{
     void getDrag();
     void getWeight();
     void getNewDrag();
-
+    void addNoise();
     double psi(double x);
     double d_psi(double x);
 
     double T_tot;
     int N_events;
     unsigned long n;
-    unsigned long rand_seed;
     double mu;
     double h;
     double t;
@@ -49,7 +52,9 @@ class System: public Bead{
     vecd v_rel;
     vecd u;
     std::default_random_engine g;
-    System(unsigned long n);
+    //std::poisson_distribution<int> poisson;
+    //std::uniform_real_distribution<double> uniform;
+    //std::normal_distribution<double> gauss;
 };
 
 #endif

@@ -2,31 +2,35 @@
 
 
 System::System(unsigned long n):
-Bead(), rand_seed(n), g(n){
+Bead(), g(n){
   N_springs = N_beads-1;
   f = vecd(N_steps_s, 0);
   vrel_par = vecd(DIM, 0);
   vrel_perp = vecd(DIM, 0);
   v_rel = vecd(DIM, 0);
   u = vecd(DIM, 0);
+  p = std::vector<std::vector<Bead> > (N_lines, std::vector<Bead> (N_beads));
 };
 
 
 void System::genNumber(){
   std::poisson_distribution<int> poisson(lambda*N_sec);
   N_events = poisson(g);
+  //std::cout << N_events << '\n';
 };
 
 
 void System::genPoint(){
   std::uniform_real_distribution<double> uniform(0.0,N_sec);
   mu = uniform(g);
+  //std::cout << mu << '\n';
 };
 
 
 void System::genGaussian(){
   std::normal_distribution<double> gauss(0.0,1.0);
   double a = gauss(g);
+  //std::cout << a << '\n';
   for (size_t i = 0; i < N_steps_s; i++) {
     t = i*dt_s;
     f[i] += a * exp(-pow(t-mu,2) / (2*pow(sigma,2)));
@@ -57,8 +61,6 @@ void System::printSeries(){
 
 
 void System::getValues(){
-
-  p = std::vector<std::vector<Bead> > (N_lines, std::vector<Bead> (N_beads));
 
   for (size_t i = 0; i < N_lines; i++) {
     for (size_t j = 0; j < N_beads; j++) {
@@ -249,12 +251,25 @@ void System::getNewDrag(){
 };
 
 
+void System::addNoise(){
+  std::normal_distribution<double> noise(0.0, 0.01);
+  for (size_t i = 0; i < N_lines; i++) {
+    for (size_t j = 1; j < N_beads; j++) {
+      for (size_t k = 0; k < DIM; k++) {
+        p[i][j].q[k] += noise(g);
+      }
+    }
+  }
+}
+
+
 void System::thermalize(){
 
   for (size_t t = 0; t < N_steps_therm_i; t++) {
     if (t%frac_dt == 0){
       t_s = t/frac_dt;
       h=f[t_s];
+      addNoise();
     }
 
     computeForces();
@@ -264,6 +279,9 @@ void System::thermalize(){
         p[i][j].oneStepProp();
       }
     }
+
+
+    //addNoise();
 
     //std::cout << p[2][2].q[0] << '\n';
   }
@@ -275,6 +293,7 @@ void System::computeForces(){
   getScalarProd();
   getAngles();
   getWindVel();
+  //getDrag();
   getNewDrag();
   getFKP();
   getFel();
@@ -290,14 +309,19 @@ void System::evolve(){
 
   thermalize();
 
-  auto start1 = high_resolution_clock::now();
+  //auto start1 = high_resolution_clock::now();
   for (size_t t = N_steps_therm_i; t < N_steps_i - N_steps_therm_i; t++) {
 
     computeForces();
+    //addNoise();
 
     //if ((t%frac_dt == 0) && (t < 2*N_steps_therm_i)){
-    if (t < 2*N_steps_therm_i){
-      out_x << p[0][0].q[0] << " " << p[0][0].vel[0] << "\n";
+    if ((t < 2*N_steps_therm_i) && (t%frac_dt == 0)){
+      out_x << p[0][0].q[0] << " ";
+      out_x << p[0][0].q[2] << " ";
+      out_x << p[0][0].vel[0] << " ";
+      out_x << p[0][0].vel[2] << " ";
+      //out_x << p[0][0].q[0] << " " << p[0][0].q[2] << " " << p[0][0].vel[0] << " " << p[0][5].q[0] << "\n";
     }
 
     //std::cout << p[0][0].F_weight[2] << '\n';
@@ -305,6 +329,7 @@ void System::evolve(){
     if (t%frac_dt == 0){
       t_s = t/frac_dt;
       h=f[t_s];
+      addNoise();
     }
 
     for (size_t i = 0; i < N_lines; i++) {
@@ -319,6 +344,7 @@ void System::evolve(){
         p[i][j].oneStepProp();
 
         if (p[i][j].q[2] < 0.0){
+          //std::cout << p[0][0].q[2] << " " << i << " " << j << " " << p[i][j].q[2] << " " << p[2][0].q[2] << '\n';
           flag = 1;
         }
       }
@@ -330,18 +356,24 @@ void System::evolve(){
       }
     }
 
+    //addNoise();
+
     if (flag == 1){
       std::cout << "The spider fell after " << (t - N_steps_therm_i) * dt_i << " seconds" << '\n';
+      //std::cout << p[1][0].q[2] << '\n';
       break;
     }
+
+    //addNoise();
+
   }
 
-  auto stop1 = high_resolution_clock::now();
-  auto duration1 = duration_cast<microseconds>(stop1 - start1);
-  std::cout << "Time taken by cycle evolve: " << duration1.count() << " microseconds" << std::endl;
+  //auto stop1 = high_resolution_clock::now();
+  //auto duration1 = duration_cast<microseconds>(stop1 - start1);
+  //std::cout << "Time taken by cycle evolve: " << duration1.count() << " microseconds" << std::endl;
 
 
-  printCoord();
+  //printCoord();
   out_x << "\n";
   out_x.close();
 

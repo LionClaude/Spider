@@ -17,6 +17,8 @@ Bead::Bead(){
 
 
 void Bead::oneStepProp(){
+  //std::default_random_engine u;
+  //std::normal_distribution<double> noise;
   if (n == 0){
     //std::cout << F_weight[2] << " " << F_el[2] << " " << acc[2] << " " << vel[2] << " " << q[2] << '\n';
     for (size_t i = 0; i < DIM; i++) {
@@ -27,6 +29,8 @@ void Bead::oneStepProp(){
   } else{
     for (size_t i = 0; i < DIM; i++) {
       acc[i] = (F_el[i] + F_KP[i] + F_drag[i])/m;
+      //acc[i] += noise(u);
+      //std::cout << noise(u) << '\n';
       vel[i] += acc[i]*dt_i;
       q[i] += vel[i]*dt_i;
     }

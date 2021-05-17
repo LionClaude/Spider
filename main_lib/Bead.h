@@ -5,7 +5,8 @@
 
 
 class Bead{
-  public:
+
+public:
     vecd q;
     vecd vel;
     vecd acc;
@@ -24,6 +25,9 @@ class Bead{
     int i;
     int n;
     int l;
+    //std::default_random_engine u;
+    //std::knuth_b u;
+    //std::normal_distribution<double> noise;
     Bead();
 };
 
